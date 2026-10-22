@@ -59,6 +59,9 @@ jobs:
       - name: Source artifact guard
         run: npm run check:source-artifacts
 
+      - name: Runtime database guard
+        run: npm run check:runtime-databases
+
   # ── Demo transcript ─────────────────────────────────────────────────────────
   demo-transcript:
     runs-on: ubuntu-latest

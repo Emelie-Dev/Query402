@@ -29,6 +29,8 @@
     "format:check": "prettier --check .",
     "check:source-artifacts": "node scripts/check-source-artifacts.mjs",
     "check:payment-leaks": "node scripts/check-payment-leaks.mjs",
+    "check:runtime-databases": "node scripts/check-runtime-databases.mjs",
+    "test:runtime-databases": "node --test scripts/check-runtime-databases.test.mjs",
     "clean": "node scripts/clean.mjs"
   },
   "devDependencies": {

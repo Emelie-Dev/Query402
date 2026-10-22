@@ -20,6 +20,7 @@ Query402 is a hackathon-ready marketplace-style router where agents can buy `sea
 
 - `x402` provides payment-required API patterns for paid HTTP routes.
 - `stellar:testnet` provides low-friction testing with programmable token payments.
+
 - Facilitator-based verification/settlement patterns are represented in the backend integration.
 
 ## Features (Phase 1–4)

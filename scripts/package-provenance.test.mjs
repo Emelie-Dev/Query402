@@ -40,10 +40,14 @@ test("every root and workspace package has provenance and remains private", asyn
 
   for (const { path: manifestPath, manifest } of manifests) {
     assert.equal(manifest.private, true, `${manifestPath} must remain private`);
-    assert.deepEqual(manifest.repository, {
-      type: "git",
-      url: REPOSITORY_URL
-    }, `${manifestPath} must declare the canonical repository`);
+    assert.deepEqual(
+      manifest.repository,
+      {
+        type: "git",
+        url: REPOSITORY_URL
+      },
+      `${manifestPath} must declare the canonical repository`
+    );
     assert.equal(manifest.license, "MIT", `${manifestPath} must declare the repository license`);
   }
 });

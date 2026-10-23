@@ -24,8 +24,15 @@ The last command should report `v24.14.1`.
 From the repository root, install the locked dependency versions:
 
 ```bash
+npm run check:lock-sources
 npm ci
 ```
+
+The lockfile source check allows HTTPS packages from `registry.npmjs.org` and
+the empty host allowlist in `scripts/check-lock-sources.mjs`. To add an
+exceptional host, review and add its hostname to `ALLOWLISTED_HOSTS` there.
+The check reads JSON only and reports package paths and source categories, not
+source URLs or credentials.
 
 The API reads local configuration from `.env`. The checked-in
 `.env.example` contains placeholders and enables deterministic `DEMO_MODE`; it

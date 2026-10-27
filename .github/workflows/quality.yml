@@ -8,6 +8,8 @@ permissions:
 jobs:
   quality:
     runs-on: ubuntu-latest
+    # Bound total job runtime so a hung install, lint, or test step fails fast (<= 20 min)
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:

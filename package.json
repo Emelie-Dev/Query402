@@ -33,6 +33,8 @@
     "check:source-artifacts": "node scripts/check-source-artifacts.mjs",
     "check:static-assets": "node scripts/check-static-assets.mjs",
     "check:payment-leaks": "node scripts/check-payment-leaks.mjs",
+    "check:repo-malware": "node scripts/check-repo-malware.mjs",
+    "test:repo-malware": "node --test scripts/check-repo-malware.test.mjs",
     "check:runtime-databases": "node scripts/check-runtime-databases.mjs",
     "test:runtime-databases": "node --test scripts/check-runtime-databases.test.mjs",
     "clean": "node scripts/clean.mjs"

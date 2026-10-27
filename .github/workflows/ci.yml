@@ -46,6 +46,11 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
+      - name: Repository malware guard
+        run: |
+          node scripts/check-repo-malware.mjs
+          node --test scripts/check-repo-malware.test.mjs
+
       - name: Verify npm major version
         run: node scripts/check-npm-version.mjs
 

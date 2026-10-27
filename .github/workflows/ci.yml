@@ -46,6 +46,9 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
+      - name: Check install lifecycle scripts
+        run: node scripts/check-install-lifecycle.mjs
+
       - name: Repository malware guard
         run: |
           node scripts/check-repo-malware.mjs
@@ -101,6 +104,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+
+      - name: Check install lifecycle scripts
+        run: node scripts/check-install-lifecycle.mjs
 
       - name: Verify npm major version
         run: node scripts/check-npm-version.mjs

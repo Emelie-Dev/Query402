@@ -3,22 +3,22 @@ import path from "node:path";
 
 const ROOT = process.cwd();
 
-function findLeaks(content) {
+function findLeaks(content, includedLines) {
   const leaks = [];
   const lines = content.split(/\r?\n/);
 
   for (let i = 0; i < lines.length; i++) {
+    if (includedLines && !includedLines.has(i)) {
+      continue;
+    }
     const line = lines[i];
     const lineNum = i + 1;
 
     // 1. Stellar secret key: S... followed by 55 alphanumeric chars
-    const secretKeyRegex = /\b(S[A-Z0-9]{55})\b/g;
+    const secretKeyRegex = /\bS[A-Z0-9]{55}\b/g;
     let match;
     while ((match = secretKeyRegex.exec(line)) !== null) {
-      const key = match[1];
-      if (!key.includes("XXXX")) {
-        leaks.push({ lineNum, pattern: "Stellar Secret Key", match: key });
-      }
+      leaks.push({ lineNum, pattern: "Stellar Secret Key" });
     }
 
     // 2. Private key block
@@ -97,6 +97,34 @@ function findLeaks(content) {
   return leaks;
 }
 
+function getWorkflowEnvLines(content) {
+  const lines = content.split(/\r?\n/);
+  const envLines = new Set();
+
+  for (let i = 0; i < lines.length; i++) {
+    const match = /^(\s*)env\s*:\s*(.*)$/.exec(lines[i]);
+    if (!match) {
+      continue;
+    }
+
+    const indentation = match[1].length;
+    envLines.add(i);
+
+    for (let j = i + 1; j < lines.length; j++) {
+      const line = lines[j];
+      if (!line.trim() || line.trimStart().startsWith("#")) {
+        continue;
+      }
+      if (line.match(/^\s*/)[0].length <= indentation) {
+        break;
+      }
+      envLines.add(j);
+    }
+  }
+
+  return envLines;
+}
+
 function runSelfTest() {
   const passingCases = [
     "Here is a safe redacted key: [REDACTED_PAYMENT_HEADER]",
@@ -146,7 +174,7 @@ function runSelfTest() {
   for (const pass of passingCases) {
     const leaks = findLeaks(pass);
     if (leaks.length > 0) {
-      console.error(`Self-test failed: Expected no leaks in "${pass}", but found:`, leaks);
+      console.error("Self-test failed: Expected no leaks in a safe sample, but found:", leaks);
       process.exit(1);
     }
   }
@@ -155,14 +183,14 @@ function runSelfTest() {
     const leaks = findLeaks(fail.text);
     if (leaks.length === 0) {
       console.error(
-        `Self-test failed: Expected leak for pattern "${fail.pattern}" in "${fail.text}", but none found.`
+        `Self-test failed: Expected leak for pattern "${fail.pattern}", but none found.`
       );
       process.exit(1);
     }
     const hasPattern = leaks.some((l) => l.pattern === fail.pattern);
     if (!hasPattern) {
       console.error(
-        `Self-test failed: Expected leak of type "${fail.pattern}" in "${fail.text}", but found different type:`,
+        `Self-test failed: Expected leak of type "${fail.pattern}", but found a different type:`,
         leaks
       );
       process.exit(1);
@@ -208,6 +236,9 @@ async function getReviewerFacingFiles() {
     }
   }
 
+  files.push(path.join(ROOT, ".env.example"));
+  files.push(...(await walk(path.join(ROOT, ".github", "workflows"))));
+
   return files;
 }
 
@@ -224,13 +255,16 @@ export async function runPaymentLeakCheck() {
 
   for (const file of files) {
     const content = await readFile(file, "utf8");
-    const leaks = findLeaks(content);
+    const relativePath = path.relative(ROOT, file).replaceAll("\\", "/");
+    const includedLines = relativePath.startsWith(".github/workflows/")
+      ? getWorkflowEnvLines(content)
+      : undefined;
+    const leaks = findLeaks(content, includedLines);
 
     if (leaks.length > 0) {
-      const relativePath = path.relative(ROOT, file);
       console.error(`Leak detected in reviewer-facing file: ${relativePath}`);
       for (const leak of leaks) {
-        console.error(`  - Line ${leak.lineNum}: [${leak.pattern}] matched value: "${leak.match}"`);
+        console.error(`  - Line ${leak.lineNum}: [${leak.pattern}]`);
       }
       hasFailures = true;
     }

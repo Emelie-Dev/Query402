@@ -3,6 +3,7 @@ import path from "node:path";
 import Database from "better-sqlite3";
 import { resolveConfinedDataPath } from "../paths.js";
 import { MIGRATIONS } from "./migrations.js";
+import { logger } from "../../logger.js";
 
 let db: Database.Database | null = null;
 let initError: Error | null = null;
@@ -87,6 +88,29 @@ export function isSchemaCurrent(dbPath: string): boolean {
  */
 const BUSY_TIMEOUT_MS = 5_000;
 
+/**
+ * Restricts a newly created database file to owner-only access (0600) on
+ * platforms that expose POSIX file modes. Windows ACLs don't map onto this
+ * call the same way, so it's skipped there; the operational expectation on
+ * Windows is that filesystem/OS-level access control is relied on instead.
+ * Pre-existing files are left untouched, and failures here are never
+ * logged with file contents or credentials — only the path.
+ */
+function restrictToOwnerIfNewlyCreated(confinedPath: string, fileExistedBefore: boolean): void {
+  if (fileExistedBefore || process.platform === "win32") {
+    return;
+  }
+
+  try {
+    fs.chmodSync(confinedPath, 0o600);
+  } catch (error) {
+    logger.warn(
+      { path: confinedPath, error: error instanceof Error ? error.message : String(error) },
+      "could not restrict database file to owner-only permissions"
+    );
+  }
+}
+
 export function getAnalyticsDb(dbPath: string): Database.Database {
   if (db && activeDbPath === dbPath) {
     return db;
@@ -116,7 +140,9 @@ export function getAnalyticsDb(dbPath: string): Database.Database {
     const directory = path.dirname(confinedPath);
     fs.mkdirSync(directory, { recursive: true });
 
+    const fileExistedBefore = fs.existsSync(confinedPath);
     const database = new Database(confinedPath);
+    restrictToOwnerIfNewlyCreated(confinedPath, fileExistedBefore);
     database.pragma("journal_mode = WAL");
     database.pragma("foreign_keys = ON");
     database.pragma(`busy_timeout = ${BUSY_TIMEOUT_MS}`);

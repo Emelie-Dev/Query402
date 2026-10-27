@@ -4,6 +4,8 @@ on: [pull_request, push]
 jobs:
   quality:
     runs-on: ubuntu-latest
+    # Bound total job runtime so a hung install, lint, or test step fails fast (<= 20 min)
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
 

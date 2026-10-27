@@ -46,6 +46,9 @@ jobs:
           node-version-file: .nvmrc
           cache: npm
 
+      - name: Verify npm major version
+        run: node scripts/check-npm-version.mjs
+
       - name: Static asset guard
         run: |
           node --test scripts/check-static-assets.test.mjs
@@ -93,6 +96,9 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
+
+      - name: Verify npm major version
+        run: node scripts/check-npm-version.mjs
 
       - name: Static asset guard
         run: node scripts/check-static-assets.mjs

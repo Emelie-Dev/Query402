@@ -3,12 +3,14 @@
   "version": "0.1.0",
   "private": true,
   "description": "Query402 monorepo: agentic pay-per-query hub with Stellar x402",
+  "packageManager": "npm@11.11.0",
   "workspaces": [
     "apps/*",
     "packages/*"
   ],
   "engines": {
-    "node": ">=20.0.0 <25.0.0"
+    "node": ">=20.0.0 <25.0.0",
+    "npm": ">=11.0.0 <12.0.0"
   },
   "scripts": {
     "dev:api": "npm run dev --workspace @query402/api",
@@ -27,6 +29,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "check:npm-version": "node scripts/check-npm-version.mjs",
     "check:source-artifacts": "node scripts/check-source-artifacts.mjs",
     "check:static-assets": "node scripts/check-static-assets.mjs",
     "check:payment-leaks": "node scripts/check-payment-leaks.mjs",
